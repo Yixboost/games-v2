@@ -1,0 +1,12 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Whoops | {{ app_name }}{% endblock %}
+
+{% block content %}
+    <div class="py-4 d-flex flex-column justify-content-center align-items-center text-center">
+        <img src="/assets/images/error.png" height="200">
+        <br>
+        <h1 class="mb-4">Error {{ error.code }}</h1>
+        <p>{{ error.description }}</i></p>
+    </div>
+{% endblock %}
