@@ -15,3 +15,13 @@ Run locally with:
 ```bash
 python3 -m uvicorn main:app --reload
 ```
+
+## OAuth login
+
+Copy `config.example.json` to `config.json`, fill in the OAuth client details, and set the provider's redirect URI to:
+
+```text
+http://127.0.0.1:8000/auth/callback
+```
+
+The core supports OpenID Connect discovery through `oauth.well_known_url`. Users are created or updated in the `users` table after login.

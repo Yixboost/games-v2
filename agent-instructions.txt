@@ -136,6 +136,12 @@ Permissions should support:
 - Future custom roles
 - Plugin-defined permissions
 
+Auth implementation convention:
+- Core owns OAuth/OpenID Connect login, session handling, current-user loading, and permission checks.
+- OAuth providers should be configured through `config.json`, environment variables, or OpenID Connect well-known metadata.
+- Do not commit real OAuth secrets; use `config.example.json` for documented defaults.
+- User-facing feature plugins should read the current user from template context or core auth helpers, not from raw cookies.
+
 Service Layer:
 
 Database access should go through services instead of direct queries throughout the codebase.

@@ -4,3 +4,5 @@ env
 data/*
 !data/.gitkeep
 .env
+config.json
+.vscode

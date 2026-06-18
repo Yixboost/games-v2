@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg border-bottom navbar-dark bg-dark">
     <div class="container-fluid">
 
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="/">
             <img src="/assets/images/logo.png" alt="Logo" width="24" height="24" class="d-inline-block align-text-top">
             Yixboost Games
         </a>
@@ -23,6 +23,28 @@
                 <button class="btn btn-outline-secondary btn-sm" id="themeToggle" title="Toggle theme">
                     <i id="themeIcon" class="fa-solid fa-moon"></i>
                 </button>
+                {% if current_user %}
+                <div class="dropdown">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if current_user.profile_picture_url %}
+                        <img src="{{ current_user.profile_picture_url }}" alt="{{ current_user.username or current_user.name }}" width="22" height="22" class="rounded-circle">
+                        {% else %}
+                        <i class="fa-solid fa-circle-user"></i>
+                        {% endif %}
+                        <span>{{ current_user.username or current_user.name }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a class="btn btn-primary btn-sm" href="/auth/login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Login
+                </a>
+                {% endif %}
             </div>
 
         </div>

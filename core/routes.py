@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
+from core.auth import require_user
 from core.templates import base_context, templates
 
 router = APIRouter()
@@ -13,13 +14,12 @@ async def ping():
 
 @router.get("/profile", response_class=HTMLResponse)
 async def profile(request: Request):
-    user = {
-        "username": "Test User",
-        "join_date": "2026-01-10",
-    }
+    user = require_user(request)
+    if not hasattr(user, "id"):
+        return user
 
     return templates.TemplateResponse(
         name="profile.html",
         request=request,
-        context=base_context(user=user),
+        context=base_context(request, user=user),
     )

@@ -7,7 +7,7 @@ async def custom_404_exception_handler(request: Request, exc):
     return templates.TemplateResponse(
         request=request,
         name="404.html",
-        context=base_context(),
+        context=base_context(request),
         status_code=404,
     )
 

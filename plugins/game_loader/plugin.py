@@ -80,7 +80,7 @@ class Plugin:
         return templates.TemplateResponse(
             name="game_loader/index.html",
             request=request,
-            context=base_context(games=games),
+            context=base_context(request, games=games),
         )
 
     async def game_detail(self, request: Request, game_id: int):
@@ -92,7 +92,7 @@ class Plugin:
         return templates.TemplateResponse(
             name="game_loader/game.html",
             request=request,
-            context=base_context(game=game),
+            context=base_context(request, game=game),
         )
 
     async def get_games(self):

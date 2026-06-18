@@ -1,0 +1,20 @@
+{
+  "app_name": "Yixboost Games",
+  "database_url": "sqlite:///data/database.db",
+  "data_dir": "data",
+  "static_dir": "static",
+  "templates_dir": "templates",
+  "session": {
+    "cookie_name": "games_session",
+    "secret": "replace-this-with-a-long-random-secret"
+  },
+  "oauth": {
+    "enabled": true,
+    "provider_name": "example",
+    "client_id": "your-client-id",
+    "client_secret": "your-client-secret",
+    "scope": "openid profile email",
+    "redirect_uri": "http://127.0.0.1:8000/auth/callback",
+    "well_known_url": "https://example.com/.well-known/openid-configuration"
+  }
+}

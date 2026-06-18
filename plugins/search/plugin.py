@@ -32,7 +32,7 @@ class Plugin:
         return templates.TemplateResponse(
             name="search/search.html",
             request=request,
-            context=base_context(query=query, games=games),
+            context=base_context(request, query=query, games=games),
         )
 
     @staticmethod

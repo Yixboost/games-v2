@@ -34,10 +34,11 @@ def render_hook(jinja_context, hook_name: str) -> str:
 templates.env.globals["hook"] = render_hook
 
 
-def base_context(**extra):
+def base_context(request=None, **extra):
     context = {
         "current_year": datetime.now().year,
         "app_name": settings.app_name,
+        "current_user": getattr(request.state, "current_user", None) if request else None,
     }
     context.update(extra)
     return context

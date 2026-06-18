@@ -23,6 +23,12 @@ class PermissionRegistry:
         role = self._roles.get(role_name)
         return bool(role and permission in role.permissions)
 
+    def user_has_permission(self, user, permission: str) -> bool:
+        if user is None:
+            return False
+
+        return self.role_has_permission(getattr(user, "role", ""), permission)
+
     def clear(self) -> None:
         self._permissions.clear()
         self._roles.clear()
