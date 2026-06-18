@@ -1,0 +1,3 @@
+[submodule "themes/default"]
+	path = themes/default
+	url = https://git.tuxworld.nl/games-v2/theme-default.git
