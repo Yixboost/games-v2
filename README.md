@@ -9,6 +9,9 @@ Open-source rewrite of Yixboost Games
 - `plugins/` contains built-in and future plugins. Plugin templates live inside each plugin at `plugins/<plugin>/templates/<plugin>/`.
 - `plugins/game_loader/` is the built-in plugin that registers the homepage, game detail route, and `/api/v1/games`.
 - `plugins/search/` registers `/search` and injects a navbar search form through the `navbar_actions` hook.
+- `custom_plugins/` and `custom_themes/` are reserved for local extensions.
+- `themes/default/` provides the default page structure through `layouts/base.html`.
+- `wiki/` contains short guides for config, plugins, auth, database requirements, and themes.
 
 Run locally with:
 

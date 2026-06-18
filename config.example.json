@@ -4,6 +4,10 @@
   "data_dir": "data",
   "static_dir": "static",
   "templates_dir": "templates",
+  "themes_dir": "themes",
+  "custom_plugins_dir": "custom_plugins",
+  "custom_themes_dir": "custom_themes",
+  "active_theme": "default",
   "session": {
     "cookie_name": "games_session",
     "secret": "replace-this-with-a-long-random-secret"

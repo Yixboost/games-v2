@@ -12,6 +12,10 @@ class Settings:
     data_dir: Path = Path("data")
     static_dir: Path = Path("static")
     templates_dir: Path = Path("templates")
+    themes_dir: Path = Path("themes")
+    custom_plugins_dir: Path = Path("custom_plugins")
+    custom_themes_dir: Path = Path("custom_themes")
+    active_theme: str = "default"
     builtin_plugins: tuple[str, ...] = (
         "plugins.game_loader",
         "plugins.search",
@@ -69,6 +73,10 @@ def load_settings() -> Settings:
         data_dir=Path(os.environ.get("GAMES_DATA_DIR", config.get("data_dir", str(Settings.data_dir)))),
         static_dir=Path(os.environ.get("GAMES_STATIC_DIR", config.get("static_dir", str(Settings.static_dir)))),
         templates_dir=Path(os.environ.get("GAMES_TEMPLATES_DIR", config.get("templates_dir", str(Settings.templates_dir)))),
+        themes_dir=Path(os.environ.get("GAMES_THEMES_DIR", config.get("themes_dir", str(Settings.themes_dir)))),
+        custom_plugins_dir=Path(os.environ.get("GAMES_CUSTOM_PLUGINS_DIR", config.get("custom_plugins_dir", str(Settings.custom_plugins_dir)))),
+        custom_themes_dir=Path(os.environ.get("GAMES_CUSTOM_THEMES_DIR", config.get("custom_themes_dir", str(Settings.custom_themes_dir)))),
+        active_theme=os.environ.get("GAMES_THEME", config.get("active_theme", Settings.active_theme)),
         session_cookie_name=os.environ.get("SESSION_COOKIE_NAME", session.get("cookie_name", Settings.session_cookie_name)),
         session_secret=os.environ.get("SESSION_SECRET", session.get("secret", Settings.session_secret)),
         oauth_enabled=_env_bool("OAUTH_ENABLED", bool(oauth.get("enabled", Settings.oauth_enabled))),

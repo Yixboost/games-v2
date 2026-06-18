@@ -14,6 +14,10 @@ from core.routes import router as core_router
 from core.services import service_registry
 from core.migrations import run_core_migrations
 from core.oauth import router as auth_router
+from core.templates import set_template_dirs
+from core.theme import theme_manager
+from core.user_service import user_service
+from core.auth import current_user
 
 
 def create_app() -> FastAPI:
@@ -25,7 +29,22 @@ def create_app() -> FastAPI:
     app.middleware("http")(auth_middleware)
     Base.metadata.create_all(bind=engine)
     run_core_migrations()
+    settings.custom_plugins_dir.mkdir(exist_ok=True)
+    settings.custom_themes_dir.mkdir(exist_ok=True)
+    active_theme = theme_manager.find_theme()
+    template_dirs = []
+    if active_theme.templates_dir.exists():
+        template_dirs.append(active_theme.templates_dir)
+    template_dirs.append(settings.templates_dir)
+    set_template_dirs(template_dirs)
     service_registry.clear()
+    service_registry.register("users", user_service)
+    service_registry.register(
+        "auth",
+        {
+            "current_user": current_user,
+        },
+    )
     event_bus.clear()
     hook_registry.clear()
     permission_registry.clear()
@@ -52,6 +71,12 @@ def create_app() -> FastAPI:
         StaticFiles(directory=str(settings.static_dir)),
         name="static",
     )
+    if active_theme.assets_dir.exists():
+        app.mount(
+            "/theme-assets",
+            StaticFiles(directory=str(active_theme.assets_dir)),
+            name="theme_assets",
+        )
 
     app.include_router(core_router)
     app.include_router(auth_router)
@@ -61,6 +86,7 @@ def create_app() -> FastAPI:
         dict.fromkeys(
             settings.builtin_plugins
             + loader.discover("plugins")
+            + loader.discover("custom_plugins")
             + settings.external_plugin_packages
         )
     )

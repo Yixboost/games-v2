@@ -9,8 +9,10 @@ from fastapi import FastAPI
 from core.events import event_bus
 from core.hooks import hook_registry
 from core.permissions import permission_registry
+from core.plugin_database import plugin_database
 from core.services import service_registry
 from core.templates import register_template_dir
+from core.auth import current_user, require_permission, require_user
 
 
 class Plugin(Protocol):
@@ -26,6 +28,7 @@ class PluginManifest:
     version: str
     description: str = ""
     depends: tuple[str, ...] = ()
+    database: dict | None = None
 
 
 @dataclass(frozen=True)
@@ -42,6 +45,30 @@ class PluginContext:
     events: object
     hooks: object
     permissions: object
+    database: object
+    auth: object
+
+
+class AuthContext:
+    def current_user(self, request):
+        return current_user(request)
+
+    def is_logged_in(self, request) -> bool:
+        return current_user(request) is not None
+
+    def has_role(self, request, role_name: str) -> bool:
+        user = current_user(request)
+        return bool(user and getattr(user, "role", None) == role_name)
+
+    def has_permission(self, request, permission: str) -> bool:
+        user = current_user(request)
+        return permission_registry.user_has_permission(user, permission)
+
+    def require_user(self, request):
+        return require_user(request)
+
+    def require_permission(self, request, permission: str):
+        return require_permission(request, permission)
 
 
 class PluginLoader:
@@ -88,6 +115,9 @@ class PluginLoader:
         if template_dir.exists():
             register_template_dir(template_dir)
 
+        if manifest.database:
+            plugin_database.apply_manifest_requirements(manifest.database)
+
         plugin: Plugin = module.Plugin()
         plugin.setup(
             self.app,
@@ -97,6 +127,8 @@ class PluginLoader:
                 events=event_bus,
                 hooks=hook_registry,
                 permissions=permission_registry,
+                database=plugin_database,
+                auth=AuthContext(),
             ),
         )
 
@@ -149,6 +181,7 @@ class PluginLoader:
             version=data["version"],
             description=data.get("description", ""),
             depends=tuple(data.get("depends", [])),
+            database=data.get("database"),
         )
 
     @staticmethod

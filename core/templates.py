@@ -21,6 +21,12 @@ def register_template_dir(template_dir: Path | str) -> None:
     templates.env.loader = ChoiceLoader([current_loader, loader])
 
 
+def set_template_dirs(template_dirs: list[Path | str]) -> None:
+    templates.env.loader = ChoiceLoader(
+        [FileSystemLoader(str(template_dir)) for template_dir in template_dirs]
+    )
+
+
 def render_template(template_name: str, context: dict) -> str:
     template = templates.env.get_template(template_name)
     return template.render(**context)

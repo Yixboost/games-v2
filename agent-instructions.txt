@@ -83,12 +83,17 @@ class Plugin:
 
 Current project convention:
 - A plugin package lives in `plugins/<plugin_name>/`.
+- Custom local plugins live in `custom_plugins/<plugin_name>/`.
 - Each plugin must include `plugin.json` and `plugin.py`.
 - Plugin templates must live inside the plugin package at `plugins/<plugin_name>/templates/<plugin_name>/`.
 - Plugin-specific assets should live inside the plugin package when added in the future.
 - Shared core templates stay in `templates/`; feature templates do not.
 - Plugins register UI additions through template hooks instead of editing core templates directly.
 - Plugins should access other capabilities through `context.services`, `context.events`, `context.hooks`, and `context.permissions`.
+- Plugins should use `context.auth` for current user, login state, roles, and permissions.
+- Plugins can declare simple database requirements in `plugin.json` under `database.tables` or `database.columns`.
+- Themes live in `themes/<theme_name>/` or `custom_themes/<theme_name>/`.
+- Feature templates should extend `layouts/base.html` so active themes can control page structure.
 
 The plugin loader should:
 - Automatically discover plugins
