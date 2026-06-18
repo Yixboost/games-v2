@@ -1,6 +1,3 @@
-from cachetools import TTLCache
+from core.cache import cache
 
-cache = TTLCache(
-    maxsize=1000,
-    ttl=300
-)
+__all__ = ["cache"]

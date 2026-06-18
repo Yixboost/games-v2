@@ -1,0 +1,6 @@
+{
+  "name": "game_loader",
+  "version": "1.0.0",
+  "description": "Loads and displays games.",
+  "depends": []
+}

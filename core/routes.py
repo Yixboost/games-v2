@@ -1,0 +1,25 @@
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse, PlainTextResponse
+
+from core.templates import base_context, templates
+
+router = APIRouter()
+
+
+@router.get("/ping", response_class=PlainTextResponse)
+async def ping():
+    return "pong!"
+
+
+@router.get("/profile", response_class=HTMLResponse)
+async def profile(request: Request):
+    user = {
+        "username": "Test User",
+        "join_date": "2026-01-10",
+    }
+
+    return templates.TemplateResponse(
+        name="profile.html",
+        request=request,
+        context=base_context(user=user),
+    )

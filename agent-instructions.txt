@@ -1,0 +1,235 @@
+Modern web application foundation using FastAPI (backend), Bootstrap 5 (frontend), Jinja2 templates, SQLAlchemy, and Alembic.
+
+The architecture must be plugin-first. Almost all functionality should be implemented as plugins, while the core remains as small as possible.
+
+Goals:
+- Long-term maintainability
+- Extreme extensibility
+- Clean separation of concerns
+- Support for future third-party plugins
+- Production-ready architecture
+
+Core Responsibilities:
+- Plugin loader
+- Database connection and management
+- Authentication integration
+- Authorization and permissions
+- Event system
+- Configuration management
+- Service registry
+- API framework
+- Theme management
+
+Everything else should be implemented as plugins.
+
+Example plugins:
+- Users
+- Search
+- Admin Dashboard
+- Comments
+- Games
+- Analytics
+- Notifications
+- Profiles
+- Forums
+
+Project Structure:
+
+app/
+├── core/
+│   ├── plugin_loader.py
+│   ├── events.py
+│   ├── permissions.py
+│   ├── services.py
+│   ├── database.py
+│   ├── config.py
+│   └── auth.py
+│
+├── plugins/
+│   ├── users/
+│   ├── search/
+│   ├── admin/
+│   └── ...
+│
+├── themes/
+│   └── default/
+│
+├── storage/
+│
+└── main.py
+
+Plugin System Requirements:
+
+Every plugin must contain a plugin manifest.
+
+Example:
+
+{
+  "name": "search",
+  "version": "1.0.0",
+  "description": "Search functionality",
+  "depends": ["users"]
+}
+
+Every plugin must expose a Plugin class.
+
+Example:
+
+class Plugin:
+    name = "search"
+
+    def setup(self, app, context):
+        pass
+
+Current project convention:
+- A plugin package lives in `plugins/<plugin_name>/`.
+- Each plugin must include `plugin.json` and `plugin.py`.
+- Plugin templates must live inside the plugin package at `plugins/<plugin_name>/templates/<plugin_name>/`.
+- Plugin-specific assets should live inside the plugin package when added in the future.
+- Shared core templates stay in `templates/`; feature templates do not.
+- Plugins register UI additions through template hooks instead of editing core templates directly.
+- Plugins should access other capabilities through `context.services`, `context.events`, `context.hooks`, and `context.permissions`.
+
+The plugin loader should:
+- Automatically discover plugins
+- Resolve dependencies
+- Load plugins in correct order
+- Allow plugins to register routes
+- Allow plugins to register services
+- Allow plugins to register events
+- Allow plugins to register navigation items
+- Allow plugins to register dashboard widgets
+
+Event System:
+
+The system must include a central event bus.
+
+Example:
+
+emit("user_created", user)
+
+Plugins can subscribe:
+
+@event("user_created")
+def update_statistics(user):
+    pass
+
+The event system should be decoupled so plugins never directly depend on each other.
+
+Permissions:
+
+Do NOT use hardcoded admin checks.
+
+Bad:
+
+if user.admin:
+    ...
+
+Good:
+
+if user.has_permission("games.delete"):
+    ...
+
+Permissions should support:
+- Roles
+- Fine-grained permissions
+- Future custom roles
+- Plugin-defined permissions
+
+Service Layer:
+
+Database access should go through services instead of direct queries throughout the codebase.
+
+Example:
+
+GameService.create(...)
+UserService.get(...)
+
+Plugins should be able to extend or consume services through a service registry.
+
+API Design:
+
+Use versioned APIs from day one.
+
+Examples:
+
+/api/v1/users
+/api/v1/search
+/api/v1/games
+
+The architecture should be API-first so future mobile apps, desktop apps, CLIs, and bots can use the same backend.
+
+Plugin Isolation:
+
+Plugins must never directly import each other.
+
+Bad:
+
+from plugins.users.models import User
+
+Good:
+
+user_service = service_registry.get("users")
+
+or
+
+emit("user_created", user)
+
+This prevents dependency hell.
+
+Database Migrations:
+
+Each plugin should have its own migrations folder.
+
+Example:
+
+plugins/
+└── games/
+    ├── migrations/
+    ├── routes.py
+    ├── models.py
+    └── plugin.py
+
+The system should support automatic plugin migrations during installation or upgrades.
+
+Theme System:
+
+Create a theme engine that allows themes to:
+- Override templates
+- Override assets
+- Add custom CSS
+- Add custom JS
+
+Default Bootstrap-based theme should be included.
+
+Frontend:
+
+Use:
+- Bootstrap 5
+- Bootstrap Icons
+- HTMX (optional but recommended)
+- Jinja2 templates
+
+Allow plugins to inject:
+- Navbar items
+- Sidebar items
+- Dashboard widgets
+- Template hooks
+
+Example template hook:
+
+{% hook "navbar_end" %}
+{% hook "dashboard_widgets" %}
+
+Development Priorities:
+
+1. Plugin Loader
+2. Event System
+3. Service Registry
+4. Permissions System
+5. Theme Engine
+6. Authentication Integration
+7. API Framework
+8. Example Plugins
+
+The final result should feel similar to a lightweight CMS/framework where nearly everything is a plugin, but the core remains stable, minimal, and framework-like.
