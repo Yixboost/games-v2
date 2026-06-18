@@ -14,7 +14,7 @@ from core.routes import router as core_router
 from core.services import service_registry
 from core.migrations import run_core_migrations
 from core.oauth import router as auth_router
-from core.templates import set_template_dirs
+from core.templates import set_active_theme, set_template_dirs
 from core.theme import theme_manager
 from core.user_service import user_service
 from core.auth import current_user
@@ -32,6 +32,7 @@ def create_app() -> FastAPI:
     settings.custom_plugins_dir.mkdir(exist_ok=True)
     settings.custom_themes_dir.mkdir(exist_ok=True)
     active_theme = theme_manager.find_theme()
+    set_active_theme(active_theme)
     template_dirs = []
     if active_theme.templates_dir.exists():
         template_dirs.append(active_theme.templates_dir)

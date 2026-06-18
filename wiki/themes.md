@@ -14,6 +14,9 @@ themes/default/
 │       ├── navbar.html
 │       └── footer.html
 └── assets/
+    ├── css/
+    │   └── theme.css
+    └── images/
 ```
 
 Custom themes live in `custom_themes/<name>/`.
@@ -37,3 +40,17 @@ Feature templates should extend the theme layout:
 ```
 
 Because theme template directories are loaded before plugin templates, a theme can override plugin templates by providing the same template path.
+
+Theme assets are served from `/theme-assets`. In templates, prefer the helper:
+
+```jinja2
+<img src="{{ theme_asset('images/logo.png') }}" alt="">
+```
+
+CSS files can reference sibling theme assets with relative URLs:
+
+```css
+.hero {
+  background-image: url("../images/hero.jpg");
+}
+```
