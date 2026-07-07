@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="icon" href="{{ game.image_url }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/game_loader/css/game_loader.css">
+    <title>{{ game.name }} | {{ app_name }}</title>
+    <meta name="robots" content="noindex">
+</head>
+
+<body style="background-image: url('{{ game.image_url }}');">
+    <div class="container-fluid">
+        <img src="{{ game.image_url }}" alt="{{ game.name }}">
+        <h1>{{ game.name }}</h1>
+        <a href="/g/embed/{{ game.id }}" target="_self">
+            <button class="btn btn-primary"><i class="fa-solid fa-play"></i> Play now</button>
+        </a>
+    </div>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,35 +1,100 @@
 {% extends "layouts/base.html" %}
-
 {% block title %}{{ app_name }}{% endblock %}
-
 {% block content %}
-    <div class="py-4">
-        <h1 class="mb-4">Welcome to {{ app_name }}!</h1>
-    </div>
-    <div class="py-4">
-        <h2>All games</h2>
-        <hr>
-        <div class="row row-cols-1 row-cols-md-5 g-4">
-            {% for game in games %}
-            <div class="col">
-                <a href="/g/{{ game.id }}" class="card text-decoration-none">
-                    <img src="{{ game.image_url }}" class="card-img-top" alt="{{ game.name }}">
+{% include "partials/large_banner.html" %}
 
-                    <div class="card-body">
-                        <div class="card-buttons d-flex gap-2">
-                            <div class="card-content flex-grow-1">
-                                <h4 class="card-title">{{ game.name }}</h4>
+{% if games %}
+<div class="main-section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="heading-section">
+                {% set ns = namespace(categories=[]) %}
 
-                                <p class="card-text fw-light">
-                                    <i class="fa-solid fa-puzzle-piece"></i>
-                                    {{ game.category }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+                {% for game in games %}
+                    {% if game.category not in ns.categories %}
+                        {% set _ = ns.categories.append(game.category) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% for category in ns.categories %}
+                    <a href="#{{ category }}">{{ category }}</a>{% if not loop.last %} | {% endif %}
+                {% endfor %}
             </div>
-            {% endfor %}
+            <br>
+
+            <div class="row">
+                {% for category in ns.categories %}
+                    <div id="{{ category }}" class="section"></div>
+                    <h2>
+                        {{ category }}
+                        <a href="/category/{{ category }}" class="see-all-link">See all →</a>
+                    </h2>
+                    <hr>
+
+                    {% set shown = namespace(count=0) %}
+                    {% for game in games %}
+                        {% if game.category == category and shown.count < 4 %}
+
+                            <div class="col-lg-3 col-sm-6">
+                                <div class="item" onclick="location.href='/g/{{ game.id }}'" style="cursor:pointer;">
+                                    <div class="thumb">
+                                        <img 
+                                            src="{{ game.image_url }}" 
+                                            class="lazyload shimmer"
+                                            onerror="this.onerror=null;this.src='/static/images/image_not_found.png';"
+                                        >
+
+                                        <div class="hover-effect">
+                                            <div class="content">
+                                                <ul>
+                                                    <li>
+                                                        <a href="/category/{{ category }}" onclick="event.stopPropagation();">
+                                                            {{ category }}
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4>
+                                        {{ game.name }}
+                                        <br>
+                                        <span></span>
+                                    </h4>
+                                </div>
+                            </div>
+                            {% set shown.count = shown.count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+
+                {% endfor %}
+
+                <div class="col-lg-12">
+                    <div class="main-button">
+                        <a href="/suggest-game">Suggest More Games!</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
+
+{% else %}
+
+<div class="main-section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="heading-section">
+                <h4>No Games Found</h4>
+            </div>
+            <p>There are currently no games available.</p>
+            <div class="main-button">
+                <a href="/suggest-game">Suggest a Game</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
 {% endblock %}

@@ -1,9 +1,6 @@
 from datetime import datetime
-
 from sqlalchemy import Column, DateTime, Integer, String
-
 from core.database import Base
-
 
 class User(Base):
     __tablename__ = "users"
@@ -30,7 +27,9 @@ class User(Base):
 class Game(Base):
     __tablename__ = "games"
 
-    id = Column(Integer, primary_key=True, index=True)
+    number = Column(Integer, primary_key=True, index=True)
+    id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     image_url = Column(String)
     category = Column(String)
+    iframe = Column(String)

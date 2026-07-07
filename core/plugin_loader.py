@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Protocol
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from core.events import event_bus
 from core.hooks import hook_registry
@@ -75,6 +76,7 @@ class PluginLoader:
     def __init__(self, app: FastAPI):
         self.app = app
         self.loaded_plugins: list[LoadedPlugin] = []
+        self.mounted_static: set[str] = set()
 
     def load_many(self, plugin_packages: tuple[str, ...]) -> list[LoadedPlugin]:
         manifests = {
@@ -89,6 +91,7 @@ class PluginLoader:
 
     def discover(self, namespace: str = "plugins") -> tuple[str, ...]:
         namespace_module = import_module(namespace)
+
         if not namespace_module.__file__:
             return ()
 
@@ -109,16 +112,21 @@ class PluginLoader:
         module = import_module(f"{plugin_package}.plugin")
 
         if not hasattr(module, "Plugin"):
-            raise RuntimeError(f"Plugin module '{plugin_package}' does not expose 'Plugin'.")
+            raise RuntimeError(
+                f"Plugin module '{plugin_package}' does not expose 'Plugin'."
+            )
 
-        template_dir = self._plugin_dir(plugin_package) / "templates"
+        plugin_dir = self._plugin_dir(plugin_package)
+        template_dir = plugin_dir / "templates"
         if template_dir.exists():
             register_template_dir(template_dir)
 
+        self._register_static(plugin_package, plugin_dir)
         if manifest.database:
             plugin_database.apply_manifest_requirements(manifest.database)
 
         plugin: Plugin = module.Plugin()
+
         plugin.setup(
             self.app,
             PluginContext(
@@ -137,8 +145,29 @@ class PluginLoader:
             module_path=plugin_package,
             version=manifest.version,
         )
+
         self.loaded_plugins.append(loaded_plugin)
+
         return loaded_plugin
+
+    def _register_static(self, plugin_package: str, plugin_dir: Path):
+        static_dir = plugin_dir / "static"
+
+        if not static_dir.exists():
+            return
+
+        plugin_id = plugin_package.split(".")[-1]
+
+        if plugin_id in self.mounted_static:
+            return
+
+        self.app.mount(
+            f"/static/{plugin_id}",
+            StaticFiles(directory=static_dir),
+            name=f"{plugin_id}-static",
+        )
+
+        self.mounted_static.add(plugin_id)
 
     def _resolve_load_order(
         self,
@@ -163,7 +192,10 @@ class PluginLoader:
                     manifest.name: list(manifest.depends)
                     for manifest in remaining.values()
                 }
-                raise RuntimeError(f"Could not resolve plugin dependencies: {unresolved}")
+
+                raise RuntimeError(
+                    f"Could not resolve plugin dependencies: {unresolved}"
+                )
 
         return ordered
 
@@ -171,7 +203,9 @@ class PluginLoader:
         manifest_path = self._plugin_dir(plugin_package) / "plugin.json"
 
         if not manifest_path.exists():
-            raise RuntimeError(f"Plugin '{plugin_package}' is missing plugin.json.")
+            raise RuntimeError(
+                f"Plugin '{plugin_package}' is missing plugin.json."
+            )
 
         with manifest_path.open() as manifest_file:
             data = json.load(manifest_file)
@@ -187,7 +221,10 @@ class PluginLoader:
     @staticmethod
     def _plugin_dir(plugin_package: str) -> Path:
         module = import_module(plugin_package)
+
         if not module.__file__:
-            raise RuntimeError(f"Plugin package '{plugin_package}' has no filesystem path.")
+            raise RuntimeError(
+                f"Plugin package '{plugin_package}' has no filesystem path."
+            )
 
         return Path(module.__file__).parent

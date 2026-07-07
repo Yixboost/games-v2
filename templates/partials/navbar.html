@@ -1,0 +1,69 @@
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <a href="/" class="logo">
+                        <img src="/static/images/navbar_logo.png" alt="{{ app_name | default('') }}">
+                    </a>
+                    <div class="search-input">
+                        <form id="search" action="/search" method="GET">
+                            <input type="text" placeholder="Search games" id="searchText" name="q"
+                                value="{{ query | default('') }}" onkeypress="submitOnEnter(event)" />
+                            <i class="fa fa-search" onclick="document.getElementById('search').submit();"></i>
+                        </form>
+                        <script>
+                            function submitOnEnter(event) {
+                                if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    document.getElementById("search").submit();
+                                }
+                            }
+                        </script>
+                    </div>
+
+                    <ul class="nav">
+                        <li>
+                            <a href="/"><i class="fa fa-home"></i> Home</a>
+                        </li>
+                        <li>
+                            <a href="/games"> <i class="fa fa-gamepad"></i> Games (N/I)</a>
+                        </li>
+                        {% if current_user %}
+                        <li class="profile-link">
+                            <a href="/profile">
+                                <div class="profile-wrapper">
+                                    {% if current_user.profile_picture_url %}
+                                    <img class="profile-picture" src="{{ current_user.profile_picture_url }}"
+                                        alt="{{ current_user.name }}'s Profile Picture">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&size=160"
+                                        alt="{{ current_user.name }}" class="profile-picture">
+                                    {% endif %}
+                                    {% if current_user.profile_decor %}
+                                    <img class="profile-decor" src="{{ current_user.profile_decor }}" alt="">
+                                    {% endif %}
+                                </div>
+                                <p> {{ current_user.name }} </p>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="profile-link">
+                            <a href="/auth/login">
+                                <div class="profile-wrapper">
+                                    <img class="profile-picture" src="/static/images/user.png"
+                                        alt="User Picture">
+                                </div>
+                                <p> Login </p>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <a class="menu-trigger">
+                        <span>Menu</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>

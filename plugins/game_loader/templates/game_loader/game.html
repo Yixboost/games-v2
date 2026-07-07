@@ -1,18 +1,102 @@
 {% extends "layouts/base.html" %}
-
 {% block title %}{{ game.name }} | {{ app_name }}{% endblock %}
-
 {% block content %}
-    <div class="py-5">
-        <h1>{{ game.name }}</h1>
-        {% if game.image_url %}
-        <img src="{{ game.image_url }}" class="img-fluid rounded mb-3" alt="{{ game.name }}">
-        {% endif %}
-        {% if game.category %}
-        <p class="text-muted">
-            <i class="fa-solid fa-puzzle-piece"></i>
-            {{ game.category }}
-        </p>
+
+<div class="game-details">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="game-container" style="border-radius: 15px; overflow: hidden;">
+                <iframe src="/g/loader/{{ game.id }}" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+            <br>
+
+            <div class="content" style="border-radius: 10px 10px 30px 30px">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="left-info">
+                            <ul>
+                                <h5>{{ game.name }}</h5>
+                                <span>
+                                    {{ game.category }}
+                                    {% if game.author %}
+                                    , by {{ game.author }}
+                                    {% endif %}
+                                </span>
+                            </ul>
+
+                            <div class="right">
+                                <li>
+                                    <i class="fa-regular fa-gamepad-modern"></i>
+                                    {{ game.views | default(0) }} views (N/I)
+                                </li>
+                                <li>
+                                    ID: {{ game.id }}
+                                </li>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="right-info">
+                            <ul>
+                                <li onclick="addToFavorites()" id="favorite_btn">
+                                    <a>
+                                        <i id="favorite_icon" class="fa-regular fa-star"></i>
+                                        <span id="favorite_text">
+                                            Add
+                                        </span>
+                                    </a>
+                                </li>
+                                <li onclick="shareGame()">
+                                    <a style="cursor: pointer;">
+                                        <i class="fa-solid fa-share-nodes"></i>
+                                        Share
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/report/{{ game.id }}">
+                                        <i class="fa-solid fa-flag text-danger"></i>
+                                        Report
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <p>{{ game.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="heading-section">
+                <h4><em>Other Related</em> Games</h4>
+            </div>
+        </div>
+        {% if related_games %}
+        <div class="row">
+            {% for game in related_games %}
+            <div class="col-lg-3 col-sm-6">
+                <div class="item" onclick="location.href='/g/{{ game.id }}'" style="cursor:pointer;">
+                    <div class="thumb">
+                        <img src="{{ game.image_url }}" class="lazyload shimmer"
+                            onerror="this.onerror=null;this.src='/static/images/image_not_found.png';">
+                    </div>
+                    <h4>
+                        {{ game.name }}
+                        <br>
+                        <span>{{ game.category }}</span>
+                    </h4>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
+</div>
 {% endblock %}

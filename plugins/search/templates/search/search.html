@@ -2,43 +2,105 @@
 
 {% block title %}Search | {{ app_name }}{% endblock %}
 
+
 {% block content %}
-        <h1 class="mb-4">Search</h1>
 
-        <form class="mb-4" action="/search" method="get">
-            <div class="input-group">
-                <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Search games" aria-label="Search games">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    Search
-                </button>
+<div class="main-section upper-section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="heading-section">
+                <h4><em>Search</em> Games<h4>
             </div>
-        </form>
 
-        {% if query %}
-        <h2 class="h5 mb-3">Results for "{{ query }}"</h2>
-        <div class="row row-cols-1 row-cols-md-5 g-4">
-            {% for game in games %}
-            <div class="col">
-                <a href="/g/{{ game.id }}" class="card text-decoration-none">
-                    {% if game.image_url %}
-                    <img src="{{ game.image_url }}" class="card-img-top" alt="{{ game.name }}">
-                    {% endif %}
+            <form class="d-flex mb-4" role="search" action="/search" method="get">
+                <div class="input-group input-group-sm search-bar">
+                    <input class="form-control" type="search" name="q" value="{{ query | default('') }}"
+                        placeholder="Search games" aria-label="Search games">
+                    <button class="btn btn-outline-light" type="submit" title="Search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
 
-                    <div class="card-body">
-                        <h3 class="h5 card-title">{{ game.name }}</h3>
-                        {% if game.category %}
-                        <p class="card-text fw-light">
-                            <i class="fa-solid fa-puzzle-piece"></i>
-                            {{ game.category }}
-                        </p>
-                        {% endif %}
+            {% if query %}
+            <h2>Results for "{{ query }}"</h2>
+            {% if total_pages > 1 %}
+            <div class="pagination-buttons">
+                {% if current_page > 1 %}
+                <a href="/search?q={{ query }}&page={{ current_page - 1 }}">← Previous</a>
+                {% endif %}
+
+                <span class="page-number">
+                    Page {{ current_page }} / {{ total_pages }}
+                </span>
+
+                {% if current_page < total_pages %}
+                <a href="/search?q={{ query }}&page={{ current_page + 1 }}">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            <hr>
+            <div class="row">
+                {% for game in games %}
+                <div class="col-lg-3 col-sm-6">
+                    <div class="item" onclick="location.href='/g/{{ game.id }}'" style="cursor:pointer;">
+                        <div class="thumb">
+                            {% if game.image_url %}
+                            <img src="{{ game.image_url }}" class="lazyload shimmer" alt="{{ game.name }}"
+                                onerror="this.onerror=null;this.src='/static/images/image_not_found.png';">
+                            {% else %}
+                            <img src="/static/images/image_not_found.png" class="lazyload shimmer"
+                                alt="{{ game.name }}">
+                            {% endif %}
+                            <div class="hover-effect">
+                                <div class="content">
+                                    <ul>
+                                        {% if game.category %}
+                                        <li>
+                                            <a href="/search?q={{ game.category }}"
+                                                onclick="event.stopPropagation();"><i
+                                                    class="fa-solid fa-puzzle-piece"></i>{{ game.category }}</a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            {{ game.name }}
+                            <br>
+                            <span>
+                                {{ game.category or '' }}
+                            </span>
+                        </h4>
                     </div>
-                </a>
+                </div>
+                {% else %}
+                <div class="col-lg-12">
+                    <p>No games found.</p>
+                </div>
+                {% endfor %}
             </div>
-            {% else %}
-            <p class="text-muted">No games found.</p>
-            {% endfor %}
+
+            {% if total_pages > 1 %}
+            <div class="pagination-buttons">
+                {% if current_page > 1 %}
+                <a href="/search?q={{ query }}&page={{ current_page - 1 }}">← Previous</a>
+                {% endif %}
+
+                <span class="page-number">
+                    Page {{ current_page }} / {{ total_pages }}
+                </span>
+
+                {% if current_page < total_pages %}
+                <a href="/search?q={{ query }}&page={{ current_page + 1 }}">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endif %}
         </div>
-        {% endif %}
+    </div>
+</div>
+
+
 {% endblock %}
