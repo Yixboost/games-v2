@@ -1,30 +1,24 @@
-# games-v2
+<img src="https://git.tuxworld.nl/yixboost/games-v2/raw/branch/main/static/images/readme_banner.png">
 
-Open-source rewrite of Yixboost Games
+# Yixboost Games V2
+Open-source rewrite of Yixboost Games, it's still in early alpha. Some features are not implemented yet, they are marked with "N/I". You can view the project's kanban board [here](https://git.tuxworld.nl/yixboost/games-v2/projects/2).
 
-## App structure
+## Public testing instance
+There is a public instance available for testing at https://version2.yixboost.eu. If you find any bugs, please report them [here](https://version2.yixboost.eu/report). You can login using Hack Club Auth. This games-v2 instance is hosted on [Hack Club Nest](https://nest.hackclub.com).
 
-- `main.py` is the thin FastAPI entrypoint.
-- `core/` owns the application factory, settings, database, cache, shared routes, template hooks, registries, error handlers, and plugin loader.
-- `plugins/` contains built-in and future plugins. Plugin templates live inside each plugin at `plugins/<plugin>/templates/<plugin>/`.
-- `plugins/game_loader/` is the built-in plugin that registers the homepage, game detail route, and `/api/v1/games`.
-- `plugins/search/` registers `/search` and injects a navbar search form through the `navbar_actions` hook.
-- `custom_plugins/` and `custom_themes/` are reserved for local extensions.
-- `themes/default/` provides the default page structure through `layouts/base.html`.
-- `wiki/` contains short guides for config, plugins, auth, database requirements, and themes.
+## The goal
+The goal of this project is to make a completely better version of the closed-source V1 version of Yixboost Games that feels and works the same as V1, but better, with plugin support, better database connections, and good caching. The way of logging in is made much better and safer with OpenID.
 
-Run locally with:
+## Built-in plugins
+- ``game_loader``: Gets games from the database and displays them on all pages, manages all the game content.
+- ``search``: Simple search plugin for searching games with a search page and search bar in the navbar.
+- ``issues``: Bug report form with autofill features and a game action button for reporting a game on the game's page.
 
-```bash
-python3 -m uvicorn main:app --reload
-```
+## Tech Stack
+- FastAPI
+- Jinja2
+- SQLite
+- Redis
 
-## OAuth login
-
-Copy `config.example.json` to `config.json`, fill in the OAuth client details, and set the provider's redirect URI to:
-
-```text
-http://127.0.0.1:8000/auth/callback
-```
-
-The core supports OpenID Connect discovery through `oauth.well_known_url`. Users are created or updated in the `users` table after login.
+This project is submitted to Hack Club's [Stardance](https://stardance.hackclub.com) event. (You can view devlogs here too)
+https://stardance.hackclub.com/projects/17189
