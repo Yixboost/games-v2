@@ -1,0 +1,12 @@
+<div class="search-input">
+    <form id="search" action="/search" method="GET">
+        <input
+            type="text"
+            placeholder="Can't find that one game?"
+            id="searchText"
+            name="q"
+            value="{{ query | default('') }}"
+        />
+        <i class="fa fa-search"></i>
+    </form>
+</div>

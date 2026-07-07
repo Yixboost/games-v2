@@ -6,21 +6,7 @@
                     <a href="/" class="logo">
                         <img src="/static/images/navbar_logo.png" alt="{{ app_name | default('') }}">
                     </a>
-                    <div class="search-input">
-                        <form id="search" action="/search" method="GET">
-                            <input type="text" placeholder="Search games" id="searchText" name="q"
-                                value="{{ query | default('') }}" onkeypress="submitOnEnter(event)" />
-                            <i class="fa fa-search" onclick="document.getElementById('search').submit();"></i>
-                        </form>
-                        <script>
-                            function submitOnEnter(event) {
-                                if (event.key === "Enter") {
-                                    event.preventDefault();
-                                    document.getElementById("search").submit();
-                                }
-                            }
-                        </script>
-                    </div>
+                    {% include "search/partials/navbar_search.html" %}
 
                     <ul class="nav">
                         <li>

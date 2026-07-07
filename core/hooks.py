@@ -12,12 +12,42 @@ class HookRegistry:
     def __init__(self):
         self._hooks: dict[str, list[HookRenderer]] = defaultdict(list)
 
-    def register(self, hook_name: str, renderer: HookRenderer) -> None:
+    def register(
+        self,
+        hook_name: str,
+        renderer: HookRenderer,
+    ) -> None:
         self._hooks[hook_name].append(renderer)
 
-    def render(self, hook_name: str, context: dict[str, Any]) -> Markup:
-        output = "".join(renderer(context) for renderer in self._hooks[hook_name])
+    def render(
+        self,
+        hook_name: str,
+        context: dict[str, Any],
+    ) -> Markup:
+        output = ""
+
+        for renderer in self._hooks.get(hook_name, []):
+            result = renderer(context)
+
+            if result:
+                output += result
+
         return Markup(output)
+
+    def run(
+        self,
+        hook_name: str,
+        context: dict[str, Any],
+    ) -> list[str]:
+        results = []
+
+        for renderer in self._hooks.get(hook_name, []):
+            result = renderer(context)
+
+            if result:
+                results.append(result)
+
+        return results
 
     def clear(self) -> None:
         self._hooks.clear()

@@ -12,13 +12,10 @@ class Settings:
     data_dir: Path = Path("data")
     static_dir: Path = Path("static")
     templates_dir: Path = Path("templates")
-    themes_dir: Path = Path("themes")
-    custom_plugins_dir: Path = Path("custom_plugins")
-    custom_themes_dir: Path = Path("custom_themes")
-    active_theme: str = "default"
     builtin_plugins: tuple[str, ...] = (
         "plugins.game_loader",
         "plugins.search",
+        "plugins.issues"
     )
     external_plugin_packages: tuple[str, ...] = field(default_factory=tuple)
     session_cookie_name: str = "games_session"

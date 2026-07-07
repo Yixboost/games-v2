@@ -33,21 +33,26 @@ class GameService:
 
     def get_related_games(self, game: Game, limit: int = 4):
         db = SessionLocal()
+
         try:
             import random
             from sqlalchemy import or_
+
             words = [
                 word.lower()
                 for word in game.name.split()
                 if not word.isdigit()
                 and len(word) > 2
             ]
+
             related = []
+
             if words:
                 filters = [
                     Game.name.ilike(f"%{word}%")
                     for word in words
                 ]
+
                 candidates = (
                     db.query(Game)
                     .filter(
@@ -56,24 +61,28 @@ class GameService:
                     )
                     .all()
                 )
+
                 score_groups = {}
+
                 for item in candidates:
                     name_words = [
                         word.lower()
                         for word in item.name.split()
                     ]
+
                     score = 0
+
                     for keyword in words:
                         for name_word in name_words:
                             if name_word == keyword:
                                 score += 10
                             elif keyword in name_word:
                                 score += 3
+
                     if score > 0:
-                        if score not in score_groups:
-                            score_groups[score] = []
+                        score_groups.setdefault(score, [])
                         score_groups[score].append(item)
-                related = []
+
                 for score in sorted(
                     score_groups.keys(),
                     reverse=True
@@ -81,15 +90,20 @@ class GameService:
                     group = score_groups[score]
                     random.shuffle(group)
                     related.extend(group)
+
                     if len(related) >= limit:
                         break
+
                 related = related[:limit]
+
             if len(related) < limit:
                 existing_ids = [
                     item.id
                     for item in related
                 ]
+
                 existing_ids.append(game.id)
+
                 extra_games = (
                     db.query(Game)
                     .filter(
@@ -98,12 +112,17 @@ class GameService:
                     )
                     .all()
                 )
+
                 random.shuffle(extra_games)
+
                 related.extend(
                     extra_games[:limit - len(related)]
                 )
+
             random.shuffle(related)
+
             return related[:limit]
+
         finally:
             db.close()
 
@@ -118,6 +137,7 @@ class GameService:
                 .order_by(Game.name.asc())
                 .all()
             )
+
         finally:
             db.close()
 
@@ -149,6 +169,8 @@ class Plugin:
             "games",
             self.game_service
         )
+
+        self.hooks = context.hooks
 
         app.include_router(self.router)
         app.include_router(self.api_router)
@@ -233,13 +255,23 @@ class Plugin:
         )
 
 
+        game_actions = self.hooks.run(
+            "game_actions",
+            {
+                "request": request,
+                "game": game
+            }
+        )
+
+
         return templates.TemplateResponse(
             name="game_loader/game.html",
             request=request,
             context=base_context(
                 request,
                 game=game,
-                related_games=related_games
+                related_games=related_games,
+                game_actions=game_actions
             )
         )
 
@@ -323,7 +355,6 @@ class Plugin:
         if "homepage_games" not in cache:
             cache["homepage_games"] = self.game_service.list_games()
 
-
         return cache["homepage_games"]
 
 
@@ -332,10 +363,8 @@ class Plugin:
 
         cache_key = f"game:{game_id}"
 
-
         if cache_key not in cache:
             cache[cache_key] = self.game_service.get_game(game_id)
-
 
         return cache[cache_key]
 

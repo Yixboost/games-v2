@@ -1,6 +1,6 @@
 {
   "name": "search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Search page and navbar search form.",
   "depends": ["game_loader"]
 }

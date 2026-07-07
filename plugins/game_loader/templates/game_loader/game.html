@@ -53,12 +53,9 @@
                                         Share
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="/report/{{ game.id }}">
-                                        <i class="fa-solid fa-flag text-danger"></i>
-                                        Report
-                                    </a>
-                                </li>
+                                {% for action in game_actions %}
+                                {{ action | safe }}
+                                {% endfor %}
                             </ul>
                         </div>
                     </div>

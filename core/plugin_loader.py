@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from importlib import import_module
+import importlib.util
 import json
+import logging
 from pathlib import Path
 from typing import Protocol
 
@@ -14,6 +16,9 @@ from core.plugin_database import plugin_database
 from core.services import service_registry
 from core.templates import register_template_dir
 from core.auth import current_user, require_permission, require_user
+
+
+logger = logging.getLogger(__name__)
 
 
 class Plugin(Protocol):
@@ -30,6 +35,7 @@ class PluginManifest:
     description: str = ""
     depends: tuple[str, ...] = ()
     database: dict | None = None
+    libraries: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -85,7 +91,10 @@ class PluginLoader:
         }
 
         for module_path in self._resolve_load_order(manifests):
-            self.load(module_path)
+            plugin = self.load(module_path)
+
+            if plugin:
+                self.loaded_plugins.append(plugin)
 
         return self.loaded_plugins
 
@@ -107,8 +116,16 @@ class PluginLoader:
 
         return tuple(plugin_packages)
 
-    def load(self, plugin_package: str) -> LoadedPlugin:
+    def load(self, plugin_package: str) -> LoadedPlugin | None:
         manifest = self._read_manifest(plugin_package)
+
+        if not self._check_libraries(manifest):
+            logger.warning(
+                "Skipping plugin '%s'",
+                manifest.name,
+            )
+            return None
+
         module = import_module(f"{plugin_package}.plugin")
 
         if not hasattr(module, "Plugin"):
@@ -117,11 +134,13 @@ class PluginLoader:
             )
 
         plugin_dir = self._plugin_dir(plugin_package)
+
         template_dir = plugin_dir / "templates"
         if template_dir.exists():
             register_template_dir(template_dir)
 
         self._register_static(plugin_package, plugin_dir)
+
         if manifest.database:
             plugin_database.apply_manifest_requirements(manifest.database)
 
@@ -140,15 +159,29 @@ class PluginLoader:
             ),
         )
 
-        loaded_plugin = LoadedPlugin(
+        return LoadedPlugin(
             name=manifest.name,
             module_path=plugin_package,
             version=manifest.version,
         )
 
-        self.loaded_plugins.append(loaded_plugin)
+    def _check_libraries(self, manifest: PluginManifest) -> bool:
+        missing = []
 
-        return loaded_plugin
+        for library in manifest.libraries:
+            if importlib.util.find_spec(library) is None:
+                missing.append(library)
+
+        if missing:
+            logger.error(
+                "Plugin '%s' disabled. Missing libraries: %s",
+                manifest.name,
+                ", ".join(missing),
+            )
+
+            return False
+
+        return True
 
     def _register_static(self, plugin_package: str, plugin_dir: Path):
         static_dir = plugin_dir / "static"
@@ -216,6 +249,7 @@ class PluginLoader:
             description=data.get("description", ""),
             depends=tuple(data.get("depends", [])),
             database=data.get("database"),
+            libraries=tuple(data.get("libraries", [])),
         )
 
     @staticmethod

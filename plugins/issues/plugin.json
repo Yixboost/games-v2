@@ -1,0 +1,11 @@
+{
+  "name": "issues",
+  "version": "1.0.0",
+  "description": "Issue reporting system with database storage and form",
+    "depends": [
+    "game_loader"
+  ],
+  "libraries": [
+    "multipart"
+  ]
+}

@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+{% block title %}Report | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="main-section upper-section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="heading-section">
+                <h4><em>Report</em> Issues</h4>
+            </div>
+
+            {% if success %}
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                Issue report submitted successfully.
+            </div>
+            {% endif %}
+
+            <form method="post">
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        class="form-control"
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ email or current_user.email }}"
+                        maxlength="255"
+                        placeholder="Your email address"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="page_url" class="form-label">Page URL</label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        id="page_url"
+                        name="page_url"
+                        value="{{ url }}"
+                        maxlength="500"
+                        placeholder="/page"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">Issue title</label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        id="title"
+                        name="title"
+                        value="{{ title }}"
+                        maxlength="100"
+                        placeholder="Enter issue title"
+                        required
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea
+                        class="form-control"
+                        id="description"
+                        name="description"
+                        rows="6"
+                        maxlength="1000"
+                        placeholder="Describe the issue"
+                        required
+                    >{{ description }}</textarea>
+
+                    <div class="form-text">
+                        <span id="description-count">{{ description|length }}</span>/1000 characters
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-light" type="submit">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Submit Report
+                </button>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const description = document.getElementById("description");
+const counter = document.getElementById("description-count");
+
+description.addEventListener("input", () => {
+    counter.textContent = description.value.length;
+});
+</script>
+{% endblock %}
