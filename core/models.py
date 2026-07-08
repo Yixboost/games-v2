@@ -22,14 +22,3 @@ class User(Base):
     role = Column(String, nullable=False, default="user")
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-
-class Game(Base):
-    __tablename__ = "games"
-
-    number = Column(Integer, primary_key=True, index=True)
-    id = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    image_url = Column(String)
-    category = Column(String)
-    iframe = Column(String)

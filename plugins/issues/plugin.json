@@ -1,11 +1,24 @@
 {
   "name": "issues",
-  "version": "1.0.0",
-  "description": "Issue reporting system with database storage and form",
-    "depends": [
+  "version": "1.2.0",
+  "description": "Issue reporting system with database-backed reports, submission forms, and admin dashboard integration.",
+  "depends": [
     "game_loader"
   ],
   "libraries": [
     "multipart"
-  ]
+  ],
+  "database": {
+    "tables": {
+      "bug_reports": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "email": "TEXT",
+        "page_url": "TEXT",
+        "title": "TEXT NOT NULL",
+        "description": "TEXT NOT NULL",
+        "status": "TEXT NOT NULL DEFAULT 'open'",
+        "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+      }
+    }
+  }
 }

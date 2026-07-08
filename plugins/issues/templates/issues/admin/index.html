@@ -1,0 +1,154 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+Issues | {{ app_name }}
+{% endblock %}
+
+{% block header %}
+Issues
+{% endblock %}
+
+{% block content %}
+
+<div class="card bg-dark border-secondary">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            Reported Issues
+        </h5>
+
+        <span class="badge bg-secondary">
+            {{ issues|length }} issue{% if issues|length != 1 %}s{% endif %}
+        </span>
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table id="issuesTable" class="table table-dark table-striped table-hover align-middle w-100">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Email</th>
+                        <th>Page</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for issue in issues %}
+
+                    <tr>
+
+                        <td>
+                            {{ issue.id }}
+                        </td>
+
+                        <td>
+                            <strong>{{ issue.title }}</strong>
+                            <br>
+                            <small class="text-secondary">
+                                {{ issue.description[:120] }}
+                                {% if issue.description|length > 120 %}...{% endif %}
+                            </small>
+                        </td>
+
+                        <td>
+                            {% if issue.email %}
+                                <a href="mailto:{{ issue.email }}">
+                                    {{ issue.email }}
+                                </a>
+                            {% else %}
+                                <span class="text-secondary">
+                                    —
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+
+                            {% if issue.page_url %}
+
+                            <a
+                                href="{{ issue.page_url }}"
+                                target="_blank"
+                                class="text-decoration-none"
+                            >
+                                {{ issue.page_url }}
+                            </a>
+
+                            {% else %}
+
+                            <span class="text-secondary">
+                                —
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if issue.status == "open" %}
+                                <span class="badge bg-danger">
+                                    Open
+                                </span>
+                            {% elif issue.status == "closed" %}
+                                <span class="badge bg-success">
+                                    Closed
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ issue.status }}
+                                </span>
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ issue.created_at }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link
+    rel="stylesheet"
+    href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.min.css"
+>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+
+new DataTable("#issuesTable", {
+    pageLength: 25,
+    order: [[0, "desc"]],
+    responsive: true
+});
+
+</script>
+
+{% endblock %}

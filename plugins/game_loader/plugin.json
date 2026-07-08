@@ -1,6 +1,17 @@
 {
   "name": "game_loader",
-  "version": "1.0.1",
-  "description": "Loads and displays games.",
-  "depends": []
+  "version": "1.2.0",
+  "description": "Game loading system with game database, API endpoints, and game pages.",
+  "libraries": [],
+  "database": {
+    "tables": {
+      "games": {
+        "id": "TEXT PRIMARY KEY",
+        "number": "INTEGER NOT NULL",
+        "name": "TEXT NOT NULL",
+        "image_url": "TEXT",
+        "category": "TEXT"
+      }
+    }
+  }
 }

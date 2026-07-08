@@ -1,145 +1,220 @@
+import random
+
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from core.cache import cache
-from core.database import SessionLocal
-from core.models import Game
 from core.templates import base_context, templates
+
 
 
 class GameService:
 
+    def __init__(
+        self,
+        database,
+    ):
+        self.database = database
+
+
+
     def list_games(self):
-        db = SessionLocal()
 
-        try:
-            return db.query(Game).all()
-        finally:
-            db.close()
+        return self.database.fetch_all(
+            """
+            SELECT *
+            FROM games
+            ORDER BY number ASC
+            """
+        )
 
 
-    def get_game(self, game_id: str):
-        db = SessionLocal()
 
-        try:
-            return (
-                db.query(Game)
-                .filter(Game.id == game_id)
-                .first()
+    def get_game(
+        self,
+        game_id: str,
+    ):
+
+        return self.database.fetch_one(
+            """
+            SELECT *
+            FROM games
+            WHERE id = :id
+            LIMIT 1
+            """,
+            {
+                "id": game_id,
+            },
+        )
+
+
+
+    def search_games(
+        self,
+        query: str,
+    ):
+
+        return self.database.fetch_all(
+            """
+            SELECT *
+            FROM games
+            WHERE name LIKE :query
+            ORDER BY name ASC
+            """,
+            {
+                "query": f"%{query}%",
+            },
+        )
+
+
+
+    def get_related_games(
+        self,
+        game,
+        limit: int = 4,
+    ):
+
+        words = {
+            word.lower()
+            for word in game["name"].split()
+            if not word.isdigit()
+            and len(word) > 2
+        }
+
+
+        related = []
+
+
+        if words:
+
+            conditions = " OR ".join(
+                [
+                    f"name LIKE :word{i}"
+                    for i in range(len(words))
+                ]
             )
-        finally:
-            db.close()
 
 
-    def get_related_games(self, game: Game, limit: int = 4):
-        db = SessionLocal()
+            params = {
+                f"word{i}": f"%{word}%"
+                for i, word in enumerate(words)
+            }
 
-        try:
-            import random
-            from sqlalchemy import or_
+            params["id"] = game["id"]
 
-            words = [
-                word.lower()
-                for word in game.name.split()
-                if not word.isdigit()
-                and len(word) > 2
+
+            candidates = self.database.fetch_all(
+                f"""
+                SELECT *
+                FROM games
+                WHERE id != :id
+                AND ({conditions})
+                """,
+                params,
+            )
+
+
+            scored = []
+
+            for item in candidates:
+
+                score = 0
+
+                item_words = {
+                    word.lower()
+                    for word in item["name"].split()
+                }
+
+
+                for keyword in words:
+
+                    if keyword in item_words:
+                        score += 10
+
+                    elif any(
+                        keyword in word
+                        for word in item_words
+                    ):
+                        score += 3
+
+
+                if score:
+                    scored.append(
+                        (
+                            score,
+                            item,
+                        )
+                    )
+
+
+            scored.sort(
+                key=lambda x: x[0],
+                reverse=True,
+            )
+
+
+            for _, item in scored:
+
+                related.append(
+                    item
+                )
+
+                if len(related) >= limit:
+                    break
+
+
+
+        if len(related) < limit:
+
+            used_ids = [
+                item["id"]
+                for item in related
             ]
 
-            related = []
-
-            if words:
-                filters = [
-                    Game.name.ilike(f"%{word}%")
-                    for word in words
-                ]
-
-                candidates = (
-                    db.query(Game)
-                    .filter(
-                        Game.id != game.id,
-                        or_(*filters)
-                    )
-                    .all()
-                )
-
-                score_groups = {}
-
-                for item in candidates:
-                    name_words = [
-                        word.lower()
-                        for word in item.name.split()
-                    ]
-
-                    score = 0
-
-                    for keyword in words:
-                        for name_word in name_words:
-                            if name_word == keyword:
-                                score += 10
-                            elif keyword in name_word:
-                                score += 3
-
-                    if score > 0:
-                        score_groups.setdefault(score, [])
-                        score_groups[score].append(item)
-
-                for score in sorted(
-                    score_groups.keys(),
-                    reverse=True
-                ):
-                    group = score_groups[score]
-                    random.shuffle(group)
-                    related.extend(group)
-
-                    if len(related) >= limit:
-                        break
-
-                related = related[:limit]
-
-            if len(related) < limit:
-                existing_ids = [
-                    item.id
-                    for item in related
-                ]
-
-                existing_ids.append(game.id)
-
-                extra_games = (
-                    db.query(Game)
-                    .filter(
-                        Game.category == game.category,
-                        ~Game.id.in_(existing_ids)
-                    )
-                    .all()
-                )
-
-                random.shuffle(extra_games)
-
-                related.extend(
-                    extra_games[:limit - len(related)]
-                )
-
-            random.shuffle(related)
-
-            return related[:limit]
-
-        finally:
-            db.close()
-
-
-    def search_games(self, query: str):
-        db = SessionLocal()
-
-        try:
-            return (
-                db.query(Game)
-                .filter(Game.name.ilike(f"%{query}%"))
-                .order_by(Game.name.asc())
-                .all()
+            used_ids.append(
+                game["id"]
             )
 
-        finally:
-            db.close()
+
+            extra = self.database.fetch_all(
+                """
+                SELECT *
+                FROM games
+                WHERE category = :category
+                """,
+                {
+                    "category": game["category"],
+                },
+            )
+
+
+            extra = [
+                item
+                for item in extra
+                if item["id"] not in used_ids
+            ]
+
+
+            random.shuffle(
+                extra
+            )
+
+
+            related.extend(
+                extra[
+                    :limit - len(related)
+                ]
+            )
+
+
+        random.shuffle(
+            related
+        )
+
+
+        return related[:limit]
+
+
 
 
 
@@ -148,32 +223,49 @@ class Plugin:
     name = "game_loader"
 
 
+
     def __init__(self):
 
         self.router = APIRouter()
 
         self.api_router = APIRouter(
             prefix="/api/v1",
-            tags=["API"]
+            tags=["API"],
         )
 
-        self.game_service = GameService()
+        self.game_service = None
+        self.hooks = None
 
         self._register_routes()
 
 
 
-    def setup(self, app: FastAPI, context):
+    def setup(
+        self,
+        app: FastAPI,
+        context,
+    ):
 
-        context.services.register(
-            "games",
-            self.game_service
+        self.game_service = GameService(
+            context.database
         )
 
         self.hooks = context.hooks
 
-        app.include_router(self.router)
-        app.include_router(self.api_router)
+
+        context.services.register(
+            "games",
+            self.game_service,
+        )
+
+
+        app.include_router(
+            self.router
+        )
+
+        app.include_router(
+            self.api_router
+        )
 
 
 
@@ -183,7 +275,7 @@ class Plugin:
             "/",
             self.home,
             methods=["GET"],
-            response_class=HTMLResponse
+            response_class=HTMLResponse,
         )
 
 
@@ -191,7 +283,7 @@ class Plugin:
             "/g/{game_id}",
             self.game_detail,
             methods=["GET"],
-            response_class=HTMLResponse
+            response_class=HTMLResponse,
         )
 
 
@@ -199,7 +291,7 @@ class Plugin:
             "/g/loader/{game_id}",
             self.game_loader,
             methods=["GET"],
-            response_class=HTMLResponse
+            response_class=HTMLResponse,
         )
 
 
@@ -207,29 +299,30 @@ class Plugin:
             "/g/embed/{game_id}",
             self.game_embed,
             methods=["GET"],
-            response_class=HTMLResponse
+            response_class=HTMLResponse,
         )
 
 
         self.api_router.add_api_route(
             "/games",
             self.get_games,
-            methods=["GET"]
+            methods=["GET"],
         )
 
 
 
-    async def home(self, request: Request):
-
-        games = self._get_homepage_games()
+    async def home(
+        self,
+        request: Request,
+    ):
 
         return templates.TemplateResponse(
-            name="game_loader/index.html",
             request=request,
+            name="game_loader/index.html",
             context=base_context(
                 request,
-                games=games
-            )
+                games=self._homepage_games(),
+            ),
         )
 
 
@@ -237,42 +330,39 @@ class Plugin:
     async def game_detail(
         self,
         request: Request,
-        game_id: str
+        game_id: str,
     ):
 
-        game = self._get_game(game_id)
+        game = self._get_game(
+            game_id
+        )
 
-        if game is None:
+
+        if not game:
+
             raise HTTPException(
-                status_code=404,
-                detail="Game not found"
+                404,
+                "Game not found",
             )
-
-
-        related_games = self.game_service.get_related_games(
-            game,
-            limit=4
-        )
-
-
-        game_actions = self.hooks.run(
-            "game_actions",
-            {
-                "request": request,
-                "game": game
-            }
-        )
 
 
         return templates.TemplateResponse(
-            name="game_loader/game.html",
             request=request,
+            name="game_loader/game.html",
             context=base_context(
                 request,
                 game=game,
-                related_games=related_games,
-                game_actions=game_actions
-            )
+                related_games=self.game_service.get_related_games(
+                    game
+                ),
+                game_actions=self.hooks.run(
+                    "game_actions",
+                    {
+                        "request": request,
+                        "game": game,
+                    },
+                ),
+            ),
         )
 
 
@@ -280,25 +370,13 @@ class Plugin:
     async def game_loader(
         self,
         request: Request,
-        game_id: str
+        game_id: str,
     ):
 
-        game = self._get_game(game_id)
-
-        if game is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Game not found"
-            )
-
-
-        return templates.TemplateResponse(
-            name="game_loader/game_loader.html",
-            request=request,
-            context=base_context(
-                request,
-                game=game
-            )
+        return await self._render_game_page(
+            request,
+            game_id,
+            "game_loader/game_loader.html",
         )
 
 
@@ -306,77 +384,90 @@ class Plugin:
     async def game_embed(
         self,
         request: Request,
-        game_id: str
+        game_id: str,
     ):
 
-        game = self._get_game(game_id)
+        return await self._render_game_page(
+            request,
+            game_id,
+            "game_loader/game_embed.html",
+        )
 
-        if game is None:
+
+
+    async def _render_game_page(
+        self,
+        request,
+        game_id,
+        template,
+    ):
+
+        game = self._get_game(
+            game_id
+        )
+
+
+        if not game:
+
             raise HTTPException(
-                status_code=404,
-                detail="Game not found"
+                404,
+                "Game not found",
             )
 
 
         return templates.TemplateResponse(
-            name="game_loader/game_embed.html",
             request=request,
+            name=template,
             context=base_context(
                 request,
-                game=game
-            )
+                game=game,
+            ),
         )
 
 
 
     async def get_games(self):
 
-        if "games" in cache:
-            return cache["games"]
+        if "games" not in cache:
+
+            cache["games"] = [
+                dict(game)
+                for game in self.game_service.list_games()
+            ]
 
 
-        games = self.game_service.list_games()
-
-
-        result = [
-            self._serialize_game(game)
-            for game in games
-        ]
-
-
-        cache["games"] = result
-
-        return result
+        return cache["games"]
 
 
 
-    def _get_homepage_games(self):
+    def _homepage_games(self):
 
         if "homepage_games" not in cache:
-            cache["homepage_games"] = self.game_service.list_games()
+
+            cache["homepage_games"] = (
+                self.game_service.list_games()
+            )
+
 
         return cache["homepage_games"]
 
 
 
-    def _get_game(self, game_id: str):
+    def _get_game(
+        self,
+        game_id,
+    ):
 
-        cache_key = f"game:{game_id}"
-
-        if cache_key not in cache:
-            cache[cache_key] = self.game_service.get_game(game_id)
-
-        return cache[cache_key]
+        key = f"game:{game_id}"
 
 
+        if key not in cache:
 
-    @staticmethod
-    def _serialize_game(game: Game):
+            cache[key] = (
+                self.game_service.get_game(
+                    game_id
+                )
+            )
 
-        return {
-            "id": game.id,
-            "number": game.number,
-            "name": game.name,
-            "image_url": game.image_url,
-            "category": game.category
-        }
+
+        return cache[key]

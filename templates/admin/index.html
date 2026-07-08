@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+Admin | {{ app_name }}
+{% endblock %}
+
+{% block header %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <div class="col-12">
+
+        <div class="card bg-dark border-secondary">
+
+            <div class="card-header">
+                <h5 class="mb-0">
+                    Welcome
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                <p class="text-secondary mb-0">
+                    Welcome to the {{ app_name }} administration panel.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {{ dashboard }}
+
+</div>
+
+{% endblock %}

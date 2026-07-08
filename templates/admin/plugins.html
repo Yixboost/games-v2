@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% block title %}
+Plugins | {{ app_name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card bg-dark border-secondary">
+    <div class="card-header">
+        <h5 class="mb-0">
+            Installed Plugins
+        </h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plugin in plugins %}
+                <tr>
+                    <td>
+                        {{ plugin.name }}
+                    </td>
+                    <td>
+                        {{ plugin.version }}
+                    </td>
+                    <td>
+                        {% if plugin.enabled %}
+                        <span class="badge bg-success">
+                            Enabled
+                        </span>
+                        {% else %}
+                        <span class="badge bg-danger">
+                            Disabled
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" action="/admin/plugins/{{ plugin.name }}/toggle">
+                            <button class="btn btn-sm btn-outline-light">Toggle</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

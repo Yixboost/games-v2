@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from core.admin import setup_admin
 from core.auth import auth_middleware, current_user
 from core.config import settings
 from core.database import Base, engine
@@ -19,66 +20,86 @@ from core.user_service import user_service
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(
-        title=settings.app_name,
-        exception_handlers=HTTP_EXCEPTIONS,
-    )
+	app = FastAPI(
+		title=settings.app_name,
+		exception_handlers=HTTP_EXCEPTIONS,
+	)
 
-    app.middleware("http")(auth_middleware)
-    Base.metadata.create_all(bind=engine)
-    run_core_migrations()
-    set_template_dirs([path_manager.paths.templates_dir])
-    service_registry.clear()
-    service_registry.register("users", user_service)
-    service_registry.register(
-        "auth",
-        {
-            "current_user": current_user,
-        },
-    )
+	app.middleware("http")(auth_middleware)
 
-    event_bus.clear()
-    hook_registry.clear()
-    permission_registry.clear()
+	Base.metadata.create_all(bind=engine)
+	run_core_migrations()
 
-    permission_registry.register_role(
-        Role(
-            name="user",
-            permissions={
-                "profile.view_own",
-            },
-        )
-    )
+	set_template_dirs(
+		[
+			path_manager.paths.templates_dir,
+		]
+	)
 
-    permission_registry.register_role(
-        Role(
-            name="admin",
-            permissions={
-                "profile.view_own",
-                "admin.access",
-            },
-        )
-    )
+	service_registry.clear()
 
-    loader = PluginLoader(app)
-    plugin_packages = tuple(
-        dict.fromkeys(
-            settings.builtin_plugins
-            + settings.external_plugin_packages
-        )
-    )
-    app.state.plugins = loader.load_many(plugin_packages)
+	service_registry.register(
+		"users",
+		user_service,
+	)
 
-    app.mount(
-        "/static",
-        StaticFiles(directory=path_manager.paths.static_dir),
-        name="static",
-    )
+	service_registry.register(
+		"auth",
+		{
+			"current_user": current_user,
+		},
+	)
 
-    app.include_router(core_router)
-    app.include_router(auth_router)
+	event_bus.clear()
+	hook_registry.clear()
+	permission_registry.clear()
 
-    return app
+	permission_registry.register_role(
+		Role(
+			name="user",
+			permissions={
+				"profile.view_own",
+			},
+		)
+	)
+
+	permission_registry.register_role(
+		Role(
+			name="admin",
+			permissions={
+				"profile.view_own",
+				"admin.access",
+			},
+		)
+	)
+
+	setup_admin(
+		app,
+		hook_registry,
+	)
+
+	loader = PluginLoader(app)
+
+	plugin_packages = tuple(
+		dict.fromkeys(settings.builtin_plugins + settings.external_plugin_packages)
+	)
+
+	app.state.plugins = loader.load_many(
+		plugin_packages,
+	)
+
+	app.mount(
+		"/static",
+		StaticFiles(
+			directory=path_manager.paths.static_dir,
+		),
+		name="static",
+	)
+
+	app.include_router(core_router)
+	app.include_router(auth_router)
+
+	return app
 
 
 app = create_app()
