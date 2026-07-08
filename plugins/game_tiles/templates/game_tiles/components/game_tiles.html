@@ -1,0 +1,29 @@
+{% if games %}
+<div class="row">
+{% for game in games %}
+<div class="col-lg-3 col-sm-6">
+    <div class="item" onclick="location.href='/g/{{ game.id }}'" style="cursor:pointer;">
+        <div class="thumb">
+            <img src="{{ game.image_url }}" class="lazyload shimmer" onerror="this.onerror=null;this.src='/static/images/image_not_found.png';">
+            <div class="hover-effect">
+                <div class="content">
+                    <ul>
+                        {% if game.category %}
+                        <li>
+                            <a href="/category/{{ game.category }}" onclick="event.stopPropagation();">{{ game.category }}</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <h4>
+            {{ game.name }}
+            <br>
+            <span></span>
+        </h4>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endif %}

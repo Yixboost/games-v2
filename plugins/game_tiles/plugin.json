@@ -1,0 +1,6 @@
+{
+  "name": "game_tiles",
+  "version": "1.0.0",
+  "description": "Loads game tiles on any place you want",
+  "depends": ["game_loader"]
+}

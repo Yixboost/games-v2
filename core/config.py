@@ -15,7 +15,8 @@ class Settings:
     builtin_plugins: tuple[str, ...] = (
         "plugins.game_loader",
         "plugins.search",
-        "plugins.issues"
+        "plugins.issues",
+        "plugins.game_tiles"
     )
     external_plugin_packages: tuple[str, ...] = field(default_factory=tuple)
     session_cookie_name: str = "games_session"
