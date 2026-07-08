@@ -3,6 +3,10 @@
 # Yixboost Games V2
 Open-source rewrite of Yixboost Games, it's still in early alpha. Some features are not implemented yet, they are marked with "N/I". You can view the project's kanban board [here](https://git.tuxworld.nl/yixboost/games-v2/projects/2).
 
+> [!WARNING]
+> NOTE: some games may not work, they are not all checked if they are working, they are embedded with iframes to another site and are not part of this project, they are just examples!
+
+
 ## Public testing instance
 There is a public instance available for testing at https://version2.yixboost.eu. If you find any bugs, please report them [here](https://version2.yixboost.eu/report). You can login using Hack Club Auth. This games-v2 instance is hosted on [Hack Club Nest](https://nest.hackclub.com).
 
